@@ -26,14 +26,16 @@
 static
 	MySQL:dbHandler;
 
-stock const MYSQL_HOST[20] = "localhost";
-stock const MYSQL_USER[5] = "root";
-stock const MYSQL_DB[20] = "dyn_actors";
+static MYSQL_HOST[20] = "localhost";
+static MYSQL_USER[5] = "root";
+static MYSQL_DB[20] = "dyn_actors";
 
 // > Actors
 
 #define TABLE_ACTORS 	"actors"
-const _MAX_ACTORS = 	(50);
+
+#undef MAX_ACTORS
+const MAX_ACTORS = 	(50);
 
 enum E_ACTOR_DATA
 {
@@ -46,9 +48,9 @@ enum E_ACTOR_DATA
 }
 
 static
-	E_ACTOR_INFO[_MAX_ACTORS char][E_ACTOR_DATA],
-	ACTOR_MODEL[_MAX_ACTORS char],
-	Iterator:Iter_Actors<_MAX_ACTORS char>;
+	E_ACTOR_INFO[MAX_ACTORS][E_ACTOR_DATA],
+	ACTOR_MODEL[MAX_ACTORS],
+	Iterator:Iter_Actors<MAX_ACTORS>;
 
 // > Aliases
 
@@ -56,7 +58,7 @@ alias:createactor("ca"); 	// Create actor
 alias:gotoactor("ga"); 		// Goto actor
 alias:locateactor("la");	// Locate actor
 alias:deleteactor("da");	// Delete actor
-alias:animactor("aa");		// Actor anim
+alias:actoranim("aa");		// Actor anim
 
 // > Script init
 
@@ -69,21 +71,16 @@ public OnGameModeInit()
   
     dbHandler = mysql_connect(MYSQL_HOST, MYSQL_USER, "", MYSQL_DB, option_id);
   
-    if (dbHandler == MYSQL_INVALID_HANDLE || mysql_errno(dbHandler) != 0)
+    if (mysql_errno(dbHandler) != 0)
     {
         SendRconCommand("exit");
         return 1;
     }
-    
-    printf(
-    	"[MySQL]: Connection successfully - [%s/%s/%s]",
-    	MYSQL_HOST, MYSQL_USER, MYSQL_DB
-    );
+    printf( "[MySQL]: Connection successfully - [%s/%s/%s]", MYSQL_HOST, MYSQL_USER, MYSQL_DB);
 
     mysql_tquery(dbHandler, "SELECT * FROM `"TABLE_ACTORS"`", "SQL_LOAD_ACTORS_FROM_DB", "");
 	return 1;
 }
-
 
 // > Loading actors from database
 
@@ -95,7 +92,7 @@ public SQL_LOAD_ACTORS_FROM_DB()
 		for (new i; i < cache_num_rows(); ++i)
 		{
 			new
-				id = Iter_Free(Iter_Actors);
+				id = Iter_Alloc(Iter_Actors);
 
 			cache_get_value_name_int(i, "ActorID", E_ACTOR_INFO[id][@actorid]);
 			cache_get_value_name_int(i, "ActorSkin", E_ACTOR_INFO[id][@actorskin]);
@@ -112,19 +109,17 @@ public SQL_LOAD_ACTORS_FROM_DB()
 					E_ACTOR_INFO[id][@aZ],
 					E_ACTOR_INFO[id][@aA]
 			);
-
-			Iter_Add(Iter_Actors, id);
 		}
 	}
 	return 1;
 }
 
 // > Function
+
 forward INSERT_ACTOR_ID_INTO_DB(_actorid);
 public INSERT_ACTOR_ID_INTO_DB(_actorid)
 {
 	E_ACTOR_INFO[_actorid][@actorid] = cache_insert_id();
-	Iter_Add(Iter_Actors, _actorid);
 	return 1;
 }
 
@@ -136,7 +131,7 @@ CMD:createactor(playerid, const params[])
 
 	new
 		actor_id,
-		i = Iter_Free(Iter_Actors),
+		i = Iter_Alloc(Iter_Actors),
 		query[240],
 
 		// > Player coordinates
