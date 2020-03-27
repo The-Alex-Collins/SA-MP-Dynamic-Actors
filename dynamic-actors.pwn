@@ -33,7 +33,7 @@ stock const MYSQL_DB[20] = "dyn_actors";
 // > Actors
 
 #define TABLE_ACTORS 	"actors"
-const _MAX_ACTORS = 	(50 char);
+const _MAX_ACTORS = 	(50);
 
 enum E_ACTOR_DATA
 {
