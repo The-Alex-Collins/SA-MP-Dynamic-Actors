@@ -33,7 +33,7 @@ stock const MYSQL_DB[20] = "dyn_actors";
 // > Actors
 
 #define TABLE_ACTORS 	"actors"
-const _MAX_ACTORS = 	(50);
+const _MAX_ACTORS = 	(50 char);
 
 enum E_ACTOR_DATA
 {
@@ -52,9 +52,11 @@ static
 
 // > Aliases
 
-alias:createactor("ca");
-alias:gotoactor("ga");
-alias:locateactor("la");
+alias:createactor("ca"); 	// Create actor
+alias:gotoactor("ga"); 		// Goto actor
+alias:locateactor("la");	// Locate actor
+alias:deleteactor("da");	// Delete actor
+alias:animactor("aa");		// Actor anim
 
 // > Script init
 
@@ -199,5 +201,63 @@ CMD:locateactor(playerid, const params[])
 	GetActorPos(ACTOR_MODEL[id], E_ACTOR_INFO[id][@aX], E_ACTOR_INFO[id][@aY], E_ACTOR_INFO[id][@aZ]);
 	
 	SetPlayerCheckpoint(playerid, (E_ACTOR_INFO[id][@aX]+1), E_ACTOR_INFO[id][@aY], E_ACTOR_INFO[id][@aZ], 3.0);
+	return 1;
+}
+
+CMD:deleteactor(playerid, const params[])
+{
+	if (!IsPlayerAdmin(playerid))
+		return SCM(playerid, 0xFF0000AA, "Error > Morate se ulogovati na rcon.");
+
+	static
+		id,
+		query[156];
+
+	if (sscanf(params, "i", id))
+		return SCM(playerid, 0xE2E2E2FF, "Usage > /deleteactor [actor id]");
+
+	if (!Iter_Contains(Iter_Actors, id))
+		return SCM(playerid, 0xFF0000AA, "Error > Invalid actor ID!");
+
+	DestroyActor(ACTOR_MODEL[id]);
+
+	mysql_format(dbHandler, query, sizeof query, "\
+		DELETE FROM `"TABLE_ACTORS"` WHERE `ActorID` = '%d'", (id + 1));
+	mysql_tquery(dbHandler, query);
+
+	Iter_Remove(Iter_Actors, id);
+	return 1;
+}
+
+CMD:actoranim(playerid, const params[])
+{
+	if (!IsPlayerAdmin(playerid))
+		return SCM(playerid, 0xFF0000AA, "Error > Morate se ulogovati na rcon.");
+
+	static
+		id,
+		anim[24];
+
+	if (sscanf(params, "is[24]", id, anim))
+		return SCM(playerid, 0xE2E2E2FF, "Usage > /actoranim [actor id] [anim]"),
+				SCM(playerid, 0xE2E2E2FF, "Animations: ANIM_STANCE / ANIM_ARMS / ANIM_CHAT");
+
+	if (!Iter_Contains(Iter_Actors, id))
+		return SCM(playerid, 0xFF0000AA, "Error > Invalid actor ID!");
+
+	if (!strcmp(anim, "ANIM_CHAT", false))
+	{
+		ApplyActorAnimation(ACTOR_MODEL[id], "PED", "IDLE_CHAT", 4.0, 0, 0, 0, 1, 1);
+	}
+
+	else if (!strcmp(anim, "ANIM_ARMS", false))
+	{
+		ApplyActorAnimation(ACTOR_MODEL[id], "COP_AMBIENT", "Coplook_loop", 4.1, 0, 1, 1, 1, 1);
+	}
+
+	else if (!strcmp(anim, "ANIM_STANCE", false))
+	{
+		ApplyActorAnimation(ACTOR_MODEL[id], "DEALER", "DEALER_IDLE", 4.1, 0, 1, 1, 1, 1);
+	}
 	return 1;
 }
