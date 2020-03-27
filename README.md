@@ -16,3 +16,12 @@
 ```
 ANIM_STANCE(dealer stance) / ANIM_ARMS(crossed arms) / ANIM_CHAT(chat)
 ```
+---
+- Aliases
+```pawn
+alias:createactor("ca"); 	// Create actor
+alias:gotoactor("ga"); 		// Goto actor
+alias:locateactor("la");	// Locate actor
+alias:deleteactor("da");	// Delete actor
+alias:animactor("aa");		// Actor anim
+```
