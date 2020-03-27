@@ -6,3 +6,13 @@
 ```
 /createactor (/ca) | /gotoactor (/ga) | /locateactor (/la)
 ```
+---
+## Version 1.1
+- Commands
+```
+/deleteactor (/da) | /actoranim (/aa)
+```
+- Animations
+```
+ANIM_STANCE(dealer stance) / ANIM_ARMS(crossed arms) / ANIM_CHAT(chat)
+```
