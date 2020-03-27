@@ -35,7 +35,7 @@ static MYSQL_DB[20] = "dyn_actors";
 #define TABLE_ACTORS 	"actors"
 
 #undef MAX_ACTORS
-const MAX_ACTORS = 	(50);
+#define MAX_ACTORS 	(50)
 
 enum E_ACTOR_DATA
 {
